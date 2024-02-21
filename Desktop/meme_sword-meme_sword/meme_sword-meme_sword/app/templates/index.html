@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <h1>Siema {{ current_user.username }}</h1>
+    {% endif %}
+    {% for post in posts %}
+        <div class="post-cont text-center mt-4 p-3 border rounded">
+            <h3 class="mb-2"><a href="{{ url_for('post', id=post.id) }}" class="text-decoration-none">{{ post.title }}</a></h3>
+            <p>{{ post.desc }}</p>
+            {% for file in post.file %}
+                {% set file_extensions = file.filename.split(".")|last %}
+                {% if file_extensions == 'mp4' %}
+                    <video controls width="600" height="480" class="mb-2">
+                        <source src="{{ url_for('upload', filename=file.filename) }}" type="video/{{ file_extensions }}">
+                        Your browser does not support the video tag.
+                    </video>
+                {% else %}
+                    <img width="600" height="480" src="{{ url_for('upload', filename=file.filename) }}" class="mb-2">
+                {% endif %}
+            {% endfor %}
+            <div class="likes">
+                {% if current_user.is_authenticated %}
+                    <button type="button" class="btn btn-primary btn-sm btn-success like-button" data-post-id="{{ post.id }}">
+                        <span class="btn-label"><i class="fa fa-thumbs-up"></i></span>
+                    </button>
+
+                <span>{{ post.likes|length }}</span>
+            </div>
+        </div>
+    {% endfor %}
+    <div class="pagination justify-content-center mt-4">
+        <ul class="pagination">
+            {% if posts.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('index') }}" aria-label="First">
+                        <span aria-hidden="true">First</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('index', page=posts.prev_num) }}" aria-label="Previous">
+                        <span aria-hidden="true">Previous</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled"><span class="page-link">Page {{ posts.page }} of {{ posts.pages }}</span></li>
+
+            {% if posts.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('index', page=posts.next_num) }}" aria-label="Next">
+                        <span aria-hidden="true">Next</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('index', page=posts.pages) }}" aria-label="Last">
+                        <span aria-hidden="true">Last</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+{% endblock %}

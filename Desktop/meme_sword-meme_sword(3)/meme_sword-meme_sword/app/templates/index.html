@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        <h1>Hey {{ current_user.username }}</h1>
+    {% endif %}
+
+    {% for post in posts %}
+        <div class="post-cont text-center mt-4 p-3 border rounded">
+            <h3 class="mb-2">
+                <a href="{{ url_for('posts.post', id=post.id) }}" class="text-decoration-none">{{ post.title }}</a>
+            </h3>
+            <p>{{ post.desc }}</p>
+
+            {% for file in post.file %}
+                {% set file_extensions = file.filename.split(".")|last %}
+                {% if file_extensions == 'mp4' %}
+                    <div class="embed-responsive embed-responsive-16by9 mb-2">
+                        <video controls class="embed-responsive-item">
+                            <source src="{{ url_for('main.upload', filename=file.filename) }}" type="video/{{ file_extensions }}">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                {% else %}
+                    <img src="{{ url_for('main.upload', filename=file.filename) }}" class="img-fluid mb-2">
+                {% endif %}
+            {% endfor %}
+
+            <div class="likes">
+                {% if current_user.is_authenticated %}
+                    <button type="button" class="btn btn-primary btn-sm btn-success like-button" data-post-id="{{ post.id }}" onclick="location.href='{{ url_for('posts.like_post', id=post.id) }}'">
+                        <span class="btn-label"><i class="fa fa-thumbs-up"></i></span>
+                    </button>
+                {% endif %}
+                <span>{{ post.likes|length }}</span>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% if posts.pages > 1 %}
+        <div class="pagination justify-content-center mt-4">
+            <ul class="pagination">
+                {% if posts.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.index', page=1) }}" aria-label="First">
+                            <span aria-hidden="true">First</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.index', page=posts.prev_num) }}" aria-label="Previous">
+                            <span aria-hidden="true">Previous</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item disabled"><span class="page-link">Page {{ posts.page }} of {{ posts.pages }}</span></li>
+
+                {% if posts.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.index', page=posts.next_num) }}" aria-label="Next">
+                            <span aria-hidden="true">Next</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.index', page=posts.pages) }}" aria-label="Last">
+                            <span aria-hidden="true">Last</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="main-info text-center d-flex flex-column align-items-center">
+                <div class="image-container">
+                    <img src="{{ url_for('upload', filename=current_user.avatar) }}" alt="{{ current_user.username }}'s Profile Image" class="centered-img avatar">
+                </div>
+                <h1>{{ current_user.username }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-3">
+            <h2 class="text-center">Your Posts</h2>
+            {% for p in posts %}
+            <div class="post">
+                <div class="post-header">
+                    <h3 class="text-center">{{ p.title }}</h3>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a>Likes: <span>{{ p.likes|length }}</span></a>
+                        <div class="btn-group">
+                            <a href="{{ url_for('update_post', id=p.id,page=p.page) }}" class="btn btn-primary">Update</a>
+                            <a href="{{ url_for('delete_post', id=p.id,page=p.page) }}" class="btn btn-danger">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    {% for file in p.file %}
+                    <img src="{{ url_for('upload', filename=file.filename) }}">
+                    {% endfor %}
+                </div>
+                <p>{{ p.desc }}</p>
+            </div>
+            {% endfor %}
+    {% if posts.total > per_page %}
+    <div class="pagination justify-content-center mt-4">
+        <ul class="pagination">
+            {% if posts.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('account') }}" aria-label="First">
+                        <span aria-hidden="true">First</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('account', page=posts.prev_num) }}" aria-label="Previous">
+                        <span aria-hidden="true">Previous</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            <li class="page-item disabled"><span class="page-link">Page {{ posts.page }} of {{ posts.pages }}</span></li>
+
+            {% if posts.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('account', page=posts.next_num) }}" aria-label="Next">
+                        <span aria-hidden="true">Next</span>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('account', page=posts.pages) }}" aria-label="Last">
+                        <span aria-hidden="true">Last</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

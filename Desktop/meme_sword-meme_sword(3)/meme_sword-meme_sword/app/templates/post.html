@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center">
+    <div class="post">
+        <h1>{{ post.title }}</h1>
+        <p>{{ post.desc }}</p>
+        {% for file in post.file %}
+            {% set file_extensions = file.filename.split(".")|last %}
+            {% if file_extensions == 'mp4' %}
+                <div class="embed-responsive embed-responsive-16by9 mb-2">
+                    <video controls class="embed-responsive-item">
+                        <source src="{{ url_for('main.upload', filename=file.filename) }}" type="video/{{ file_extensions }}">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            {% else %}
+                <img src="{{ url_for('main.upload', filename=file.filename) }}" class="img-fluid mb-2">
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+<div class="container mt-4">
+    {% for comment in comments %}
+    <div class="comment row mb-3" style="{{ 'margin-left: 2rem;' if comment.parent_id }}">
+        <div class="col-md-2 text-center">
+            <img src="{{ url_for('main.upload', filename=comment.author.avatar) }}" alt="{{ comment.author.username }}" class="img-thumbnail rounded-circle img-fluid" style="max-width: 60px;">
+            <h6>{{ comment.author.username }}</h6>
+        </div>
+
+        <div class="col-md-10">
+            <div class="votes d-flex justify-content-end">
+                <span class="mr-2">Votes: {{get_net_votes(comment.id)}}</span>
+                <a href="{{ url_for('posts.comment_vote', comment_id=comment.id, vote_type='up') }}" class="btn btn-primary btn-sm btn-success"><i class="bi bi-arrow-up"></i></a>
+                <a href="{{ url_for('posts.comment_vote', comment_id=comment.id, vote_type='down') }}" class="btn btn-primary btn-sm btn-danger"><i class="bi bi-arrow-down"></i></a>
+            </div>
+            <p>{{ comment.text }}</p>
+            <button class="btn btn-primary btn-sm btn-info reply-link" data-comment-id="{{ comment.id }}">Reply</button>
+            <div class="reply-form mt-2" style="display:none;" data-comment-id="{{ comment.id }}">
+                <form method="post" action="{{url_for('posts.reply', id_comment=comment.id)}}">
+                    {{ form.csrf_token }}
+                    <div class="form-group">
+                        {{ form.text.label(class="form-control-label") }}
+                        {{ form.text(class="form-control", cols="30", rows="5") }}
+                    </div>
+                    <button class="btn btn-primary">Reply</button>
+                </form>
+            </div>
+            {% if comment.author.username == current_user.username %}
+                <a href="{{ url_for('posts.delete_comment', id=comment.id) }}" class="btn btn-danger">Delete Comment</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% if current_user.is_authenticated %}
+    <form method="post">
+        {{ form.csrf_token }}
+        <div class="form-group">
+            {{ form.text.label(class="form-control-label") }}
+            {{ form.text(class="form-control", cols="30", rows="5") }}
+        </div>
+        {{ form.submit(class="btn btn-primary") }}
+    </form>
+{% endif %}
+
+<script>
+   document.addEventListener('DOMContentLoaded', function() {
+       document.querySelectorAll('.reply-link').forEach(function(replyLink) {
+           replyLink.addEventListener('click', function(e) {
+               e.preventDefault();
+               const commentId = replyLink.getAttribute('data-comment-id');
+               const replyForm = document.querySelector(`.reply-form[data-comment-id="${commentId}"]`);
+               if (replyForm.style.display === 'none') {
+                   replyForm.style.display = 'block';
+               } else {
+                   replyForm.style.display = 'none';
+               }
+           });
+       });
+   });
+</script>
+
+{% endblock %}

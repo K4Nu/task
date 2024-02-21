@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container text-center">
+    <div class="post">
+        <h1>{{ post.title }}</h1>
+        <p>{{ post.desc }}</p>
+        {% for file in post.file %}
+            {% set file_extensions = file.filename.split(".")|last %}
+            {% if file_extensions == 'mp4' %}
+                <video controls width="600" height="480" class="mb-2">
+                    <source src="{{ url_for('upload', filename=file.filename) }}" type="video/{{ file_extensions }}">
+                    Your browser does not support the video tag.
+                </video>
+            {% else %}
+                <img width="600" height="480" src="{{ url_for('upload', filename=file.filename) }}" class="mb-2">
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+<div class="container mt-4">
+    {% for comment in post.comment %}
+    <div class="comment float-left mb-3">
+        <h6>{{ comment.author.username }}</h6>
+        <p>{{ comment.text }}</p>
+        {% if comment.author.username == current_user.username %}
+        <a href="{{ url_for('delete_comment', id=comment.id) }}" class="btn btn-danger">Delete Comment</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <div class="clearfix"></div>
+</div>
+
+{% if current_user.is_authenticated %}
+<form method="post">
+    {{ form.csrf_token }}
+    <div class="form-group">
+        {{ form.text.label(class="form-control-label") }}
+        {{ form.text(class="form-control", cols="30", rows="5") }}
+    </div>
+    {{ form.submit(class="btn btn-primary") }}
+</form>
+{% endif %}
+{% endblock %}
